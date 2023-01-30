@@ -43,6 +43,7 @@ namespace SearchFolderApp
 
             var service = new ExchangeService();
             service.HttpHeaders.Add("Authorization", $"Bearer {auth.AccessToken}");
+            service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, "Mark8ProjectTeam@M365x612691.onmicrosoft.com");
             service.Url = new Uri("https://outlook.office365.com/ews/exchange.asmx");
             service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, ConfigurationManager.AppSettings["impersonatedUser"] as string);
 
@@ -53,14 +54,27 @@ namespace SearchFolderApp
             GetSearchFolders(service);
             GetMessagesAllProperties(service);
             GetMessagesReducedProperties(service);
+            GetFoldersInFolder(service);
             GetMessages(service);
             GetMessagesQuery(service);
             GetChangesByBatchSize(service);
             GetCalendarSelectProperties(service);
+            GetArchiveFolder(service);
 
             Console.WriteLine("Press any key ...");
             Console.ReadKey();
 
+        }
+
+        private static void GetFoldersInFolder(ExchangeService service)
+        {
+            FolderView view = new FolderView(100);
+            var results = service.FindFolders(new FolderId("AAMkADljNDI4ZDI4LTlhOWEtNDdjYy05NGJlLWI1NmNmMzhiYmQ1MwAuAAAAAAD8/brfsm6RRax0jDhbq9egAQCE/MAqGzi1SYwF8BP/ts40AAAAAAEhAAA="), view);
+        }
+
+        private static void GetArchiveFolder(ExchangeService service)
+        {
+            Folder archiveFolderRoot = Folder.Bind(service, WellKnownFolderName.ArchiveMsgFolderRoot);
         }
 
         private static void GetChangesByBatchSize(ExchangeService service)
@@ -264,7 +278,7 @@ namespace SearchFolderApp
 
             while (more)
             {
-                findResults = service.FindItems(WellKnownFolderName.MsgFolderRoot, view);
+                findResults = service.FindItems(new FolderId("AAMkADljNDI4ZDI4LTlhOWEtNDdjYy05NGJlLWI1NmNmMzhiYmQ1MwAuAAAAAAD8/brfsm6RRax0jDhbq9egAQCE/MAqGzi1SYwF8BP/ts40AAAAAAEhAAA="), view);
                 foreach (var item in findResults.Items)
                 {
                     emails.Add((EmailMessage)item);
